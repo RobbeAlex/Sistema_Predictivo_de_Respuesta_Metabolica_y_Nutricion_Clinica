@@ -82,7 +82,7 @@ flowchart TB
 
 ## 2. Diagrama Entidad-Relación (ERD - Base de Datos PostgreSQL)
 
-Modelo relacional en Estrella / 3ra Forma Normal implementado en `Sistema_Predictivo_de_Respuesta_Metabolica_y_Nutricion_Clinica.sql`.
+Modelo relacional en Estrella / 3ra Forma Normal implementado en `Database/Sistema_Predictivo_de_Respuesta_Metabolica_y_Nutricion_Clinica.sql`.
 
 ```mermaid
 erDiagram
@@ -124,7 +124,7 @@ erDiagram
 
 ## 3. Diagrama de Flujo del Pipeline MLOps (Orquestación en Apache Airflow)
 
-Representa la lógica de control, programación y tolerancia a fallos definida en `airflow/dags/mlops_clinico_pipeline.py`.
+Representa la lógica de control, programación y tolerancia a fallos definida en `Para_Linux/airflow/dags/mlops_clinico_pipeline.py`.
 
 ```mermaid
 flowchart TD

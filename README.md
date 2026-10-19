@@ -58,29 +58,41 @@ flowchart LR
 ```text
 Sistema_Predictivo_de_Respuesta_Metabolica_y_Nutricion_Clinica/
 │
-├── airflow/                                    # Entorno de Orquestación MLOps (WSL2 / Docker)
-│   ├── dags/
-│   │   ├── mlops_clinico_pipeline.py           # Definición del DAG en Apache Airflow
-│   │   ├── etl_clinico.py                      # Script ETL hacia PostgreSQL
-│   │   ├── entrenamiento_ml.py                 # Script de reentrenamiento de Random Forest
-│   │   ├── columnas_entrenamiento.pkl          # Esquema serializado de features (One-Hot)
-│   │   └── gastrointestinal_disease_dataset.csv# Dataset clínico fuente para el contenedor
-│   └── docker-compose.yaml                     # Clúster Airflow 3.3.2 (Celery + Redis + Postgres)
+├── Para_Windows/                               # Aplicaciones y análisis en el entorno Host (Windows)
+│   ├── api_clinica.py                          # Backend RESTful API con FastAPI y Pydantic
+│   ├── app.py                                  # Interfaz web interactiva con Streamlit
+│   └── script.ipynb                            # Notebook de exploración, ETL, ML y evaluación
+│
+├── Para_Linux/                                 # Entorno de Orquestación MLOps (WSL2 / Docker)
+│   └── airflow/
+│       ├── dags/
+│       │   ├── mlops_clinico_pipeline.py       # Definición del DAG en Apache Airflow
+│       │   ├── etl_clinico.py                  # Script ETL hacia PostgreSQL
+│       │   ├── entrenamiento_ml.py             # Script de reentrenamiento de Random Forest
+│       │   ├── columnas_entrenamiento.pkl      # Esquema serializado de features (One-Hot)
+│       │   └── gastrointestinal_disease_dataset.csv # Dataset clínico fuente para el contenedor
+│       └── docker-compose.yaml                 # Clúster Airflow 3.3.2 (Celery + Redis + Postgres)
+│
+├── Database/                                   # Capa de Persistencia y Datos Fuente
+│   ├── Sistema_Predictivo_de_Respuesta_Metabolica_y_Nutricion_Clinica.sql # DDL del modelo relacional
+│   └── gastrointestinal_disease_dataset.csv    # Dataset clínico original (30,560 registros)
+│
+├── Modelos/                                    # Artefactos Serializados del Modelo ML (.pkl)
+│   ├── columnas_entrenamiento.pkl              # Lista serializada de las 10 columnas del modelo
+│   └── modelo_metabolico.pkl                   # Modelo Random Forest entrenado (local; excluido en Git >100 MB)
+│
+├── Graficas/                                   # Visualizaciones de Evaluación del Modelo
+│   ├── grafico_importancia_variables.png       # Visualización de importancia de biomarcadores
+│   └── matriz_confusion_alta_calidad.png       # Matriz de confusión multiclase del modelo
+│
+├── Resultados/                                 # Métricas y Reportes Tabulares
+│   ├── importancia_biomarcadores.csv           # Peso predictivo de cada variable clínica
+│   └── reporte_metricas_clinicas.txt           # Reporte de clasificación (Precision, Recall, F1)
 │
 ├── docs/                                       # Documentación de Ingeniería
 │   ├── DOCUMENTACION_TECNICA.md                # Especificación técnica detallada de punta a punta
 │   └── DIAGRAMAS_FLUJO_Y_UML.md                # Diagramas de Arquitectura, ERD, Flujo y UML
 │
-├── Sistema_Predictivo_de_Respuesta_Metabolica_y_Nutricion_Clinica.sql # DDL del modelo relacional
-├── script.ipynb                                # Notebook de exploración, ETL, ML y evaluación
-├── api_clinica.py                              # Backend RESTful API con FastAPI y Pydantic
-├── app.py                                      # Interfaz web interactiva con Streamlit
-├── columnas_entrenamiento.pkl                  # Lista serializada de las 10 columnas del modelo
-├── gastrointestinal_disease_dataset.csv        # Dataset clínico original (30,560 registros)
-├── importancia_biomarcadores.csv               # Peso predictivo de cada variable clínica
-├── reporte_metricas_clinicas.txt               # Reporte de clasificación (Precision, Recall, F1)
-├── grafico_importancia_variables.png           # Visualización de importancia de biomarcadores
-├── matriz_confusion_alta_calidad.png           # Matriz de confusión multiclase del modelo
 ├── requirements.txt                            # Dependencias de Python del proyecto
 ├── .gitignore                                  # Reglas de exclusión para control de versiones Git
 ├── LICENSE                                     # Licencia MIT del proyecto
@@ -108,7 +120,7 @@ El modelo procesa **8 variables clínicas de entrada** (que se expanden a **10 c
 
 | Importancia de Biomarcadores (Random Forest) | Matriz de Confusión Multiclase |
 | :---: | :---: |
-| ![Importancia de Biomarcadores](./grafico_importancia_variables.png) | ![Matriz de Confusión](./matriz_confusion_alta_calidad.png) |
+| ![Importancia de Biomarcadores](./Graficas/grafico_importancia_variables.png) | ![Matriz de Confusión](./Graficas/matriz_confusion_alta_calidad.png) |
 
 ---
 
@@ -129,44 +141,46 @@ pip install -r requirements.txt
 ```
 
 ### 2. Configurar la Base de Datos en PostgreSQL
-Crear la base de datos en PostgreSQL y ejecutar el archivo físico del script DDL (`Sistema_Predictivo_de_Respuesta_Metabolica_y_Nutricion_Clinica.sql`) incluido en el repositorio:
+Crear la base de datos en PostgreSQL y ejecutar el archivo físico del script DDL (`Database/Sistema_Predictivo_de_Respuesta_Metabolica_y_Nutricion_Clinica.sql`) incluido en el repositorio:
 ```bash
 # Sintaxis general (-U: usuario, -d: nombre de la base de datos, -f: archivo .sql del repositorio):
-psql -U <USERNAME> -d <DATABASENAME> -f Sistema_Predictivo_de_Respuesta_Metabolica_y_Nutricion_Clinica.sql
+psql -U <USERNAME> -d <DATABASENAME> -f Database/Sistema_Predictivo_de_Respuesta_Metabolica_y_Nutricion_Clinica.sql
 
 # Ejemplo con los valores por defecto del proyecto:
-psql -U postgres -d Sistema_Predictivo_de_Respuesta_Metabolica_y_Nutricion_Clinica -f Sistema_Predictivo_de_Respuesta_Metabolica_y_Nutricion_Clinica.sql
+psql -U postgres -d Sistema_Predictivo_de_Respuesta_Metabolica_y_Nutricion_Clinica -f Database/Sistema_Predictivo_de_Respuesta_Metabolica_y_Nutricion_Clinica.sql
 ```
 
 ### 3. Configurar Parámetros de Conexión y Rutas en los Scripts
-Por seguridad y portabilidad, los archivos del repositorio utilizan marcadores genéricos. Antes de ejecutar los pipelines o levantar la API, sustituye los siguientes parámetros en el código (`airflow/dags/etl_clinico.py`, `airflow/dags/entrenamiento_ml.py`, `script.ipynb` y `api_clinica.py`):
+Por seguridad y portabilidad, los archivos del repositorio utilizan marcadores genéricos. Antes de ejecutar los pipelines o levantar la API, sustituye los siguientes parámetros en el código (`Para_Linux/airflow/dags/etl_clinico.py`, `Para_Linux/airflow/dags/entrenamiento_ml.py`, `Para_Windows/script.ipynb` y `Para_Windows/api_clinica.py`):
 
 | Parámetro | Significado y con qué sustituirlo |
 | :--- | :--- |
 | **`<USERNAME>`** | Coloca el **nombre de usuario de PostgreSQL** asociado a la base de datos a utilizar (por defecto suele ser `postgres`). |
 | **`<PASSWORD>`** | Coloca la **contraseña** configurada para acceder a tu servidor de base de datos PostgreSQL. |
 | **`<DATABASENAME>`** | Coloca el **nombre de la base de datos** creada en PostgreSQL (ej. `Sistema_Predictivo_de_Respuesta_Metabolica_y_Nutricion_Clinica`). |
-| **`user`** | Coloca el **nombre del directorio del usuario** en tu sistema (WSL2/Ubuntu o Windows) que se utilizará para ejecutar y exportar los resultados (ej. en `api_clinica.py`: `\\wsl$\Ubuntu\home\user\airflow\dags` → sustituir `user` por tu usuario de Ubuntu). |
+| **`user`** | Coloca el **nombre del directorio del usuario** en tu sistema (WSL2/Ubuntu o Windows) que se utilizará para ejecutar y exportar los resultados (ej. en `Para_Windows/api_clinica.py`: `\\wsl$\Ubuntu\home\user\airflow\dags` → sustituir `user` por tu usuario de Ubuntu). |
 
 ### 4. Levantar Orquestación MLOps con Apache Airflow (Docker / WSL2)
 ```bash
-cd airflow
+cd Para_Linux/airflow
 docker compose up -d
 ```
 - Acceder al panel web de Airflow en `http://localhost:8080`.
 - Activar el DAG **`pipeline_predictivo_metabolico`** para ejecutar el ciclo **ETL → Entrenamiento ML → Exportación `.pkl`**.
-- *(Nota: El archivo `modelo_metabolico.pkl` de ~228 MB está excluido en `.gitignore` por superar el límite de 100 MB de GitHub, y se genera automáticamente al correr el DAG o `airflow/dags/entrenamiento_ml.py`).*
+- *(Nota: El archivo `Modelos/modelo_metabolico.pkl` de ~228 MB está excluido en `.gitignore` por superar el límite de 100 MB de GitHub, y se genera automáticamente al correr el DAG o `Para_Linux/airflow/dags/entrenamiento_ml.py`).*
 
 ### 5. Iniciar el Backend API RESTful (FastAPI)
-En una terminal en la raíz del proyecto:
+En una terminal dentro de la carpeta `Para_Windows`:
 ```bash
+cd Para_Windows
 uvicorn api_clinica:app --host 127.0.0.1 --port 8000 --reload
 ```
 - Documentación interactiva Swagger UI disponible en: `http://127.0.0.1:8000/docs`
 
 ### 6. Iniciar la Interfaz Clínica (Streamlit)
-En una segunda terminal:
+En una segunda terminal dentro de `Para_Windows`:
 ```bash
+cd Para_Windows
 streamlit run app.py
 ```
 - La aplicación se abrirá automáticamente en el navegador en: `http://localhost:8501`

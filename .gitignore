@@ -180,3 +180,7 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 modelo_metabolico.pkl
+**/modelo_metabolico.pkl
+*Zone.Identifier*
+Para_Linux/airflow/airflow_venv/
+Para_Linux/airflow/logs/

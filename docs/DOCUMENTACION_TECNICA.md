@@ -19,15 +19,15 @@
 
 El **Sistema Predictivo de Respuesta Metabólica y Nutrición Clínica** es una solución integral de **Ingeniería de Datos, Machine Learning y MLOps** diseñada para asistir en la predicción de diagnósticos y sintomatologías gastrointestinales a partir de biomarcadores clínicos de inflamación, métricas antropométricas, diversidad del microbioma intestinal, historial farmacológico (uso de antibióticos) y régimen dietético del paciente.
 
-### Componentes Principales del Ecosistema
+#### Componentes Principales del Ecosistema
 | Capa | Tecnología | Archivo Principal | Responsabilidad |
 | :--- | :--- | :--- | :--- |
-| **Almacenamiento Relacional** | PostgreSQL 16 | `Sistema_Predictivo_de_Respuesta_Metabolica_y_Nutricion_Clinica.sql` | Persistencia normalizada (3NF / Esquema Estrella) de pacientes, catálogos y registros clínicos. |
-| **Ingesta y Normalización (ETL)** | Python, Pandas, SQLAlchemy | `airflow/dags/etl_clinico.py` | Extracción desde dataset clínico CSV (`latin1`), limpieza, mapeo de llaves foráneas y carga en PostgreSQL. |
-| **Entrenamiento ML** | Scikit-Learn, Joblib | `airflow/dags/entrenamiento_ml.py` / `script.ipynb` | Reconstrucción relacional vía `INNER JOIN`, One-Hot Encoding, entrenamiento de `RandomForestClassifier` y serialización `.pkl`. |
-| **Orquestación MLOps** | Apache Airflow 3.3.2 (Docker + Celery + Redis) | `airflow/dags/mlops_clinico_pipeline.py` | Ejecución programada diariamente (`03:00 AM`) del ciclo ETL → Reentrenamiento → Notificación a la API. |
-| **Servicio de Inferencia (Backend)** | FastAPI, Pydantic, Uvicorn | `api_clinica.py` | Exposición del endpoint REST `POST /predecir_diagnostico/`, validación estricta del payload y alineación de matriz de características. |
-| **Interfaz Clínica (Frontend)** | Streamlit, Requests | `app.py` | Captura interactiva de biomarcadores del paciente y visualización del diagnóstico previsto en tiempo real. |
+| **Almacenamiento Relacional** | PostgreSQL 16 | `Database/Sistema_Predictivo_de_Respuesta_Metabolica_y_Nutricion_Clinica.sql` | Persistencia normalizada (3NF / Esquema Estrella) de pacientes, catálogos y registros clínicos. |
+| **Ingesta y Normalización (ETL)** | Python, Pandas, SQLAlchemy | `Para_Linux/airflow/dags/etl_clinico.py` | Extracción desde dataset clínico CSV (`latin1`), limpieza, mapeo de llaves foráneas y carga en PostgreSQL. |
+| **Entrenamiento ML** | Scikit-Learn, Joblib | `Para_Linux/airflow/dags/entrenamiento_ml.py` / `Para_Windows/script.ipynb` | Reconstrucción relacional vía `INNER JOIN`, One-Hot Encoding, entrenamiento de `RandomForestClassifier` y serialización `.pkl` (`Modelos/`). |
+| **Orquestación MLOps** | Apache Airflow 3.3.2 (Docker + Celery + Redis) | `Para_Linux/airflow/dags/mlops_clinico_pipeline.py` | Ejecución programada diariamente (`03:00 AM`) del ciclo ETL → Reentrenamiento → Notificación a la API. |
+| **Servicio de Inferencia (Backend)** | FastAPI, Pydantic, Uvicorn | `Para_Windows/api_clinica.py` | Exposición del endpoint REST `POST /predecir_diagnostico/`, validación estricta del payload y alineación de matriz de características. |
+| **Interfaz Clínica (Frontend)** | Streamlit, Requests | `Para_Windows/app.py` | Captura interactiva de biomarcadores del paciente y visualización del diagnóstico previsto en tiempo real. |
 
 ---
 
@@ -36,7 +36,7 @@ El **Sistema Predictivo de Respuesta Metabólica y Nutrición Clínica** es una 
 El proyecto opera sobre una arquitectura híbrida que integra el entorno nativo de **Windows** con **WSL2 (Ubuntu)** y contenedores **Docker**.
 
 > [!NOTE]
-> **Nota sobre las rutas del repositorio**: Este repositorio reúne en una sola estructura unificada los artefactos que en ejecución residen distribuidos entre el sistema anfitrión Windows y el subsistema Linux (`WSL2`). Se han preservado las rutas originales en el código fuente (`\\wsl$\Ubuntu\home\user\airflow\dags` y `/opt/airflow/dags/`) para documentar fielmente la comunicación inter-sistema sin alterar el flujo de producción.
+> **Nota sobre las rutas del repositorio**: Este repositorio reúne en una estructura organizada por carpetas (`Para_Windows/`, `Para_Linux/`, `Database/`, `Modelos/`, `Graficas/`, `Resultados/`) los artefactos que en ejecución residen distribuidos entre el sistema anfitrión Windows y el subsistema Linux (`WSL2`). Se han preservado las rutas originales en el código fuente (`\\wsl$\Ubuntu\home\user\airflow\dags` y `/opt/airflow/dags/`) para documentar fielmente la comunicación inter-sistema sin alterar el flujo de producción.
 
 ### Mecanismos de Comunicación Inter-Entorno
 
@@ -49,7 +49,7 @@ El proyecto opera sobre una arquitectura híbrida que integra el entorno nativo 
 
 2. **Host Windows (FastAPI) → WSL2 / Volumen Docker (`dags`)**:
    - Cuando el worker de Airflow finaliza la tarea `reentrenar_random_forest`, exporta los artefactos binarios (`modelo_metabolico.pkl` y `columnas_entrenamiento.pkl`) dentro de `/opt/airflow/dags/`, directorio montado como volumen hacia `/home/user/airflow/dags` en WSL2.
-   - El servicio `api_clinica.py` ejecutado en Windows consume directamente dichos artefactos a través de la ruta de red UNC de WSL:
+   - El servicio `Para_Windows/api_clinica.py` ejecutado en Windows consume directamente dichos artefactos a través de la ruta de red UNC de WSL:
      ```python
      ruta_wsl = r"\\wsl$\Ubuntu\home\user\airflow\dags"
      ```
@@ -60,10 +60,10 @@ El proyecto opera sobre una arquitectura híbrida que integra el entorno nativo 
 >
 > | Parámetro / Marcador | Descripción | Con qué sustituirlo (Ejemplo) | Archivos donde se utiliza |
 > | :--- | :--- | :--- | :--- |
-> | **`<USERNAME>`** | Nombre de usuario de PostgreSQL asociado a la base de datos a utilizar. | `postgres` (o tu usuario configurado en PostgreSQL) | `airflow/dags/etl_clinico.py`, `airflow/dags/entrenamiento_ml.py`, `script.ipynb` |
-> | **`<PASSWORD>`** | Contraseña de autenticación para acceder al servidor de base de datos PostgreSQL. | `tu_contraseña_segura` | `airflow/dags/etl_clinico.py`, `airflow/dags/entrenamiento_ml.py`, `script.ipynb` |
-> | **`<DATABASENAME>`** | Nombre de la base de datos creada en PostgreSQL donde residen las tablas del modelo clínico. | `Sistema_Predictivo_de_Respuesta_Metabolica_y_Nutricion_Clinica` | `airflow/dags/etl_clinico.py`, `airflow/dags/entrenamiento_ml.py`, `script.ipynb` |
-> | **`user`** | Nombre del directorio del usuario del sistema operativo (en WSL2 / Ubuntu o Windows) donde se aloja la carpeta `airflow/dags` para ejecutar/exportar los resultados (`.pkl`). | Tu nombre de usuario en Ubuntu WSL2 (ej. `/home/tu_usuario/airflow/dags` o `\\wsl$\Ubuntu\home\tu_usuario\airflow\dags`) | `api_clinica.py`, `docs/DIAGRAMAS_FLUJO_Y_UML.md` |
+> | **`<USERNAME>`** | Nombre de usuario de PostgreSQL asociado a la base de datos a utilizar. | `postgres` (o tu usuario configurado en PostgreSQL) | `Para_Linux/airflow/dags/etl_clinico.py`, `Para_Linux/airflow/dags/entrenamiento_ml.py`, `Para_Windows/script.ipynb` |
+> | **`<PASSWORD>`** | Contraseña de autenticación para acceder a tu servidor de base de datos PostgreSQL. | `tu_contraseña_segura` | `Para_Linux/airflow/dags/etl_clinico.py`, `Para_Linux/airflow/dags/entrenamiento_ml.py`, `Para_Windows/script.ipynb` |
+> | **`<DATABASENAME>`** | Nombre de la base de datos creada en PostgreSQL donde residen las tablas del modelo clínico. | `Sistema_Predictivo_de_Respuesta_Metabolica_y_Nutricion_Clinica` | `Para_Linux/airflow/dags/etl_clinico.py`, `Para_Linux/airflow/dags/entrenamiento_ml.py`, `Para_Windows/script.ipynb` |
+> | **`user`** | Nombre del directorio del usuario del sistema operativo (en WSL2 / Ubuntu o Windows) donde se aloja la carpeta `airflow/dags` para ejecutar/exportar los resultados (`.pkl`). | Tu nombre de usuario en Ubuntu WSL2 (ej. `/home/tu_usuario/airflow/dags` o `\\wsl$\Ubuntu\home\tu_usuario\airflow\dags`) | `Para_Windows/api_clinica.py`, `docs/DIAGRAMAS_FLUJO_Y_UML.md` |
 
 ---
 
@@ -144,7 +144,7 @@ El módulo `etl_clinico.py` implementa la lógica de **Extracción, Transformaci
 
 ## 5. Pipeline de Machine Learning y Feature Engineering (`entrenamiento_ml.py`)
 
-El entrenamiento del modelo se encuentra documentado de forma exploratoria en `script.ipynb` y productivizado para ejecución desatendida en `airflow/dags/entrenamiento_ml.py`.
+El entrenamiento del modelo se encuentra documentado de forma exploratoria en `Para_Windows/script.ipynb` y productivizado para ejecución desatendida en `Para_Linux/airflow/dags/entrenamiento_ml.py`.
 
 ### 5.1. Reconstrucción del Dataset Analítico desde SQL
 El script ejecuta una consulta relacional con triple `INNER JOIN` para consolidar la matriz de entrenamiento directamente desde la fuente única de verdad (PostgreSQL):
@@ -195,7 +195,7 @@ INNER JOIN cat_enfermedades e ON r.id_enfermedad = e.id_enfermedad;
   - `n_jobs = -1`: Paralelización en todos los núcleos de CPU disponibles.
 
 ### 5.4. Importancia de Biomarcadores (Feature Importance)
-De acuerdo con los resultados exportados en `importancia_biomarcadores.csv`, el peso predictivo de cada característica según la reducción de impureza de Gini es el siguiente:
+De acuerdo con los resultados exportados en `Resultados/importancia_biomarcadores.csv`, el peso predictivo de cada característica según la reducción de impureza de Gini es el siguiente:
 
 | Rango | Variable / Biomarcador | Importancia Relativa | Porcentaje |
 | :---: | :--- | :---: | :---: |
@@ -213,7 +213,7 @@ De acuerdo con los resultados exportados en `importancia_biomarcadores.csv`, el 
 > [!IMPORTANT]
 > **Hallazgo Clínico-Analítico**: Los 5 biomarcadores cuantitativos continuos (`proteina_c_reactiva`, `calprotectina_fecal`, `imc`, `indice_microbioma` y `edad`) concentran el **89.78%** del poder discriminativo del modelo, confirmando la relevancia predominante de los marcadores inflamatorios e intestinales frente a las variables demográficas y dietéticas categóricas (que suman el **10.22%** restante).
 
-### 5.5. Métricas de Evaluación (`reporte_metricas_clinicas.txt`)
+### 5.5. Métricas de Evaluación (`Resultados/reporte_metricas_clinicas.txt`)
 Evaluación sobre el conjunto de prueba ($N = 6,112$ muestras distribuidas en 6 clases balanceadas):
 
 | Clase Diagnóstica | Precision | Recall | F1-Score | Support |
@@ -232,7 +232,7 @@ Evaluación sobre el conjunto de prueba ($N = 6,112$ muestras distribuidas en 6 
 
 ## 6. Orquestación MLOps con Apache Airflow (`mlops_clinico_pipeline.py`)
 
-El despliegue de Airflow se gestiona mediante `airflow/docker-compose.yaml` utilizando la imagen oficial `apache/airflow:3.3.2` con arquitectura distribuida **`CeleryExecutor`**, broker **Redis 7.2** y base de datos de metadatos **PostgreSQL 16**.
+El despliegue de Airflow se gestiona mediante `Para_Linux/airflow/docker-compose.yaml` utilizando la imagen oficial `apache/airflow:3.3.2` con arquitectura distribuida **`CeleryExecutor`**, broker **Redis 7.2** y base de datos de metadatos **PostgreSQL 16**.
 
 ### Especificación del DAG: `pipeline_predictivo_metabolico`
 - **Propietario (`owner`)**: `postgres`
@@ -322,8 +322,8 @@ Desarrollada en **Streamlit**, proporciona un panel médico limpio dividido en d
 ## 9. Decisiones de Diseño, Limitaciones Conocidas y Hoja de Ruta
 
 1. **Exclusión de `modelo_metabolico.pkl` en Git**:
-   - El archivo binario del bosque aleatorio ocupa **~228 MB**, superando el límite estricto de **100 MB** de GitHub. Por ello se ha incluido en `.gitignore`, garantizando que el repositorio pueda subirse sin bloqueos. El archivo se regenera automáticamente ejecutando `entrenamiento_ml.py` o `script.ipynb`.
+   - El archivo binario del bosque aleatorio (`Modelos/modelo_metabolico.pkl`) ocupa **~228 MB**, superando el límite estricto de **100 MB** de GitHub. Por ello se ha incluido en `.gitignore`, garantizando que el repositorio pueda subirse sin bloqueos. El archivo se regenera automáticamente ejecutando `Para_Linux/airflow/dags/entrenamiento_ml.py` o `Para_Windows/script.ipynb`.
 2. **Idempotencia en el ETL (`cat_dietas` y `cat_enfermedades`)**:
    - Las tablas de catálogo poseen la restricción `UNIQUE` en `tipo_dieta` y `clase_enfermedad`. En ejecuciones subsecuentes del ETL sobre una base de datos ya poblada, se recomienda emplear una estrategia `INSERT ... ON CONFLICT DO NOTHING` o truncado previo de staging para garantizar idempotencia total.
 3. **Implementación del Endpoint `/recargar_modelo`**:
-   - El DAG de Airflow ya incluye el hook `curl -X POST http://host.docker.internal:8000/recargar_modelo || true`. Como siguiente paso evolutivo en `api_clinica.py`, se puede agregar la función decorada con `@app.post("/recargar_modelo")` que vuelva a ejecutar `joblib.load()` en caliente sin reiniciar Uvicorn.
+   - El DAG de Airflow ya incluye el hook `curl -X POST http://host.docker.internal:8000/recargar_modelo || true`. Como siguiente paso evolutivo en `Para_Windows/api_clinica.py`, se puede agregar la función decorada con `@app.post("/recargar_modelo")` que vuelva a ejecutar `joblib.load()` en caliente sin reiniciar Uvicorn.
