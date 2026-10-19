@@ -36,7 +36,7 @@ El **Sistema Predictivo de Respuesta Metabólica y Nutrición Clínica** es una 
 El proyecto opera sobre una arquitectura híbrida que integra el entorno nativo de **Windows** con **WSL2 (Ubuntu)** y contenedores **Docker**.
 
 > [!NOTE]
-> **Nota sobre las rutas del repositorio**: Este repositorio reúne en una sola estructura unificada los artefactos que en ejecución residen distribuidos entre el sistema anfitrión Windows y el subsistema Linux (`WSL2`). Se han preservado las rutas originales en el código fuente (`\\wsl$\Ubuntu\home\robbealex\airflow\dags` y `/opt/airflow/dags/`) para documentar fielmente la comunicación inter-sistema sin alterar el flujo de producción.
+> **Nota sobre las rutas del repositorio**: Este repositorio reúne en una sola estructura unificada los artefactos que en ejecución residen distribuidos entre el sistema anfitrión Windows y el subsistema Linux (`WSL2`). Se han preservado las rutas originales en el código fuente (`\\wsl$\Ubuntu\home\user\airflow\dags` y `/opt/airflow/dags/`) para documentar fielmente la comunicación inter-sistema sin alterar el flujo de producción.
 
 ### Mecanismos de Comunicación Inter-Entorno
 
@@ -48,10 +48,10 @@ El proyecto opera sobre una arquitectura híbrida que integra el entorno nativo 
      ```
 
 2. **Host Windows (FastAPI) → WSL2 / Volumen Docker (`dags`)**:
-   - Cuando el worker de Airflow finaliza la tarea `reentrenar_random_forest`, exporta los artefactos binarios (`modelo_metabolico.pkl` y `columnas_entrenamiento.pkl`) dentro de `/opt/airflow/dags/`, directorio montado como volumen hacia `/home/robbealex/airflow/dags` en WSL2.
+   - Cuando el worker de Airflow finaliza la tarea `reentrenar_random_forest`, exporta los artefactos binarios (`modelo_metabolico.pkl` y `columnas_entrenamiento.pkl`) dentro de `/opt/airflow/dags/`, directorio montado como volumen hacia `/home/user/airflow/dags` en WSL2.
    - El servicio `api_clinica.py` ejecutado en Windows consume directamente dichos artefactos a través de la ruta de red UNC de WSL:
      ```python
-     ruta_wsl = r"\\wsl$\Ubuntu\home\robbealex\airflow\dags"
+     ruta_wsl = r"\\wsl$\Ubuntu\home\user\airflow\dags"
      ```
 
 ---
