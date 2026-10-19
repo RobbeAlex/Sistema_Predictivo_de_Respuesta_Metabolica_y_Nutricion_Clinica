@@ -44,7 +44,7 @@ El proyecto opera sobre una arquitectura híbrida que integra el entorno nativo 
    - Los contenedores de Airflow (`airflow-worker`, `airflow-scheduler`) se comunican con el servidor PostgreSQL (puerto `5432`) y el servidor FastAPI (puerto `8000`) alojados en el host mediante el DNS interno de Docker: `host.docker.internal`.
    - Cadena de conexión SQLAlchemy empleada en los scripts del DAG:
      ```python
-     cadena_conexion = 'postgresql+psycopg2://postgres:<PASSWORD>@host.docker.internal:5432/Sistema_Predictivo_de_Respuesta_Metabolica_y_Nutricion_Clinica?client_encoding=utf8'
+     cadena_conexion = 'postgresql+psycopg2://<USERNAME>:<PASSWORD>@host.docker.internal:5432/<DATABASENAME>?client_encoding=utf8'
      ```
 
 2. **Host Windows (FastAPI) → WSL2 / Volumen Docker (`dags`)**:
