@@ -34,7 +34,7 @@ flowchart TB
 
     subgraph WSL2["🐧 Subsistema Linux: WSL2 (Ubuntu)"]
         direction TB
-        subgraph SharedVol["📂 Volumen Compartido (/home/robbealex/airflow/dags)"]
+        subgraph SharedVol["📂 Volumen Compartido (/home/user/airflow/dags)"]
             CSV[📄 gastrointestinal_disease_dataset.csv]
             PKL_Model[🧠 modelo_metabolico.pkl]
             PKL_Cols[📋 columnas_entrenamiento.pkl]
@@ -69,11 +69,14 @@ flowchart TB
     Task2 -->|"Exporta .pkl (joblib)"| PKL_Model
     Task2 -->|"Exporta .pkl (joblib)"| PKL_Cols
     
-    PKL_Model -.->|"Carga en memoria vía UNC\n(\\wsl$\Ubuntu\...)"| FastAPI
-    PKL_Cols -.->|"Carga en memoria vía UNC\n(\\wsl$\Ubuntu\...)"| FastAPI
+    PKL_Model -.->|"Carga en memoria vía UNC\n(\\wsl$\Ubuntu\home\user\airflow\dags)"| FastAPI
+    PKL_Cols -.->|"Carga en memoria vía UNC\n(\\wsl$\Ubuntu\home\user\airflow\dags)"| FastAPI
     Task3 -->|"Webhook HTTP POST\n(host.docker.internal:8000)"| FastAPI
     Notebook -.->|"Experimentación y Métricas"| PostgresHost
 ```
+
+> [!NOTE]
+> **Nota de configuración**: En el diagrama anterior, `user` representa el nombre del directorio del usuario dentro de WSL2 (`Ubuntu`) donde se monta el volumen de ejecución y exportación de resultados (`/home/user/airflow/dags`).
 
 ---
 

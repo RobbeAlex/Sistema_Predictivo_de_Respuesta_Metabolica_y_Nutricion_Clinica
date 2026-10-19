@@ -4,7 +4,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.types import Boolean
 
 # Conexión apuntando al puente de Docker
-cadena_conexion = 'postgresql+psycopg2://postgres:R0bb34l3x@host.docker.internal:5432/Sistema_Predictivo_de_Respuesta_Metabolica_y_Nutricion_Clinica?client_encoding=utf8'
+# NOTA DE CONFIGURACIÓN - Sustituye los siguientes parámetros antes de ejecutar:
+# <USERNAME>     = Nombre de usuario de PostgreSQL asociado a la base de datos a utilizar (ej. postgres)
+# <PASSWORD>     = Contraseña para acceder a la base de datos PostgreSQL
+# <DATABASENAME> = Nombre de la base de datos en PostgreSQL (ej. Sistema_Predictivo_de_Respuesta_Metabolica_y_Nutricion_Clinica)
+cadena_conexion = 'postgresql+psycopg2://<USERNAME>:<PASSWORD>@host.docker.internal:5432/<DATABASENAME>?client_encoding=utf8'
 engine = create_engine(cadena_conexion)
 
 def ejecutar_etl():

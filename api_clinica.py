@@ -13,8 +13,10 @@ app = FastAPI(
 )
 
 # 2. Cargar el modelo y las columnas en la memoria al iniciar el servidor
-# Definir la ruta de red de Windows hacia la carpeta de Airflow en WSL
-ruta_wsl = r"\\wsl$\Ubuntu\home\robbealex\airflow\dags"
+# NOTA DE CONFIGURACIÓN:
+# user = nombre del directorio del usuario en WSL (Ubuntu) que se utilizará para ejecutar/exportar resultados
+# Sustituye 'user' por tu nombre de usuario de Linux en WSL2 (ej. \\wsl$\Ubuntu\home\tu_usuario\airflow\dags)
+ruta_wsl = r"\\wsl$\Ubuntu\home\user\airflow\dags"
 
 ruta_modelo = os.path.join(ruta_wsl, 'modelo_metabolico.pkl')
 ruta_columnas = os.path.join(ruta_wsl, 'columnas_entrenamiento.pkl')
